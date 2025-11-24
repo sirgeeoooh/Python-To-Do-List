@@ -131,7 +131,7 @@ def delete_task(tasks):
             delete_input = int(delete_input)
             
             if delete_input < 1 or delete_input > len(tasks):
-                raise IndexError("Task doesn't exist!")
+                raise IndexError(f"Task doesn't exist! Enter number from 1-{len(tasks)}")
             
             removed_task = tasks.pop(delete_input - 1)
             print(f"Task '{removed_task}' deleted!\n")
