@@ -153,7 +153,7 @@ def main():
 
     while not quit_controller.should_quit():
         display_menu()
-        choice = input('Enter your choice (1-4): ')
+        choice = input(f'Enter your choice ({MENU_CHOICES[0]}-{MENU_CHOICES[len(MENU_CHOICES)-1]}): ')
         print('=' * 50) 
 
         try:
