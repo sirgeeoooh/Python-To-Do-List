@@ -135,8 +135,10 @@ def delete_task(tasks):
             
             removed_task = tasks.pop(delete_input - 1)
             print(f"Task '{removed_task}' deleted!\n")
-            
-            continue
+
+            if len(tasks) == 0:
+                print('\nNo more task, returning to main menu')
+                break
         
         except NoTasksError as e:
             print(f'\nError: {e}')
