@@ -7,83 +7,34 @@ Features: Add, view, delete tasks with full error handling.
 Run directly: python todo-list.py
 """
 
-def display_menu():
-    print('\n=== TASK MANAGER ===')
-    print('1. Add Task')
-    print('2. View Task')
-    print('3. Delete Task')
-    print('4. Quit')
+# ===== IMPORTS =====
+# (None needed for this project)
 
-def add_task(tasks):
-    """
-    Add a new task to the task list after validating it's not empty.
-    
-    Args:
-        tasks (list): The list of tasks to add to
-    """
-    try:
-        task = input('Enter task: ').strip()
-        if not task:
-            raise ValueError('Task cannot be empty!')
-    
-    except ValueError as e:
-        print(f'Error: {e}')
-    else:
-        tasks.append(task)
-        print(f'Task {task} added!')
-    finally:
-        print('Task cannot be empty! Please enter a task')
-    
-def view_task(tasks):
-    if not tasks:
-        print('No tasks to display')
-    else:
-        print('=== ALL TASK TO BE COMPLETED ===')
-        for i, task in enumerate(tasks, 1):
-            print(f"{i}. {task}")
-            
-def delete_task(tasks):
-    """
-    Delete a task by its number with comprehensive error handling.
-    
-    Args:
-        tasks (list): The list of tasks to delete from
-    """
-    try:
-        if not tasks:
-            print('There are no task to delete.')
-            return
-        
-        view_task(tasks)
-        delete_input = int(input('Input the task number to delete: '))
-        
-        if delete_input < 1 or delete_input > len(tasks):
-            raise IndexError("Task doesn't exist!")
-        
-    except ValueError:
-        print('Please enter a valid number!')
-    
-    except IndexError as e:
-        print(f'Error: {e}')
-    else:
-        removed_task = tasks.pop(delete_input - 1)
-        print(f'Task {removed_task} deleted!')
-    finally:
-        print('Delete operation completed!')
+# ===== CONSTANTS =====
+MENU_CHOICES = ['1', '2', '3', '4']
 
-def welcome_message():
-    print('=== WELCOME TO TASK MANAGER ===')
-    print('Manage your task efficiently!\n')
-    
-class NotValidInput(Exception):
+# ===== EXCEPTION CLASSES =====
+class TaskManagerError(Exception):
+    """Base exception class for all Task Manager errors"""
     pass
 
+class NotValidInput(TaskManagerError):
+    pass
+
+class TaskAlreadyInListError(TaskManagerError):
+    pass
+
+class NoTasksError(TaskManagerError):
+    pass
+
+class TaskMinimumCharError(TaskManagerError):
+    pass
+
+# ===== REGULAR CLASSES =====
 class InputOptions:
-    MENU_CHOICES = ['1','2','3','4']
-    
     @staticmethod
     def validate_choice(choice):
-        if choice not in InputOptions.MENU_CHOICES:
+        if choice not in MENU_CHOICES:
             raise NotValidInput('Input must be between (1-4)')
         return choice
 
@@ -96,7 +47,103 @@ class QuitProgram:
         
     def should_quit(self):
         return self.quit_program
+
+def display_menu():
+    print('\n=== TASK MANAGER ===')
+    print('1. Add Task')
+    print('2. View Task')
+    print('3. Delete Task')
+    print('4. Quit')
     
+def welcome_message():
+    print('=== WELCOME TO TASK MANAGER ===')
+    print('Manage your task efficiently!\n')
+
+def add_task(tasks):
+    """
+    Add a new task to the task list after validating it's not empty and not in the list already.
+    
+    Add multiple tasks continuously until user enters empty input.
+    
+    Args:
+        tasks (list): The list of tasks to add to
+    """
+    print("\n=== Add Task (press Enter when done) ===")
+    while True:
+        try:
+            task = input('\nEnter task (or press Enter to finish): ').strip()
+            task_lower = task.casefold()
+            
+            if not task:
+                print('\nFinished adding tasks.')
+                break
+            
+            if len(task) < 3:
+                raise TaskMinimumCharError("Task must be at least 3 characters long")
+            
+            if task_lower in [t.casefold() for t in tasks]:
+                raise TaskAlreadyInListError("Task already in the list, enter new task or return to main menu.")
+            
+            tasks.append(task)
+            print(f"Task '{task}' added!")
+            print('=' * 50)  
+            
+        except TaskMinimumCharError as e:
+            print(f'\nError: {e}')
+            
+        except TaskAlreadyInListError as e:
+            print(f'\nError: {e}')
+    
+def view_task(tasks):
+    try:
+        if not tasks:
+            raise NoTasksError("No tasks to display!")
+        
+        print('=== ALL TASK TO BE COMPLETED ===')
+        for i, task in enumerate(tasks, 1):
+            print(f"{i}. {task}")
+    
+    except NoTasksError as e:
+        print(f'\nError: {e}')
+        
+            
+def delete_task(tasks):
+    """
+    Delete tasks by its number with error handling for empty list and task number validation.
+    
+    Args:
+        tasks (list): The list of tasks to delete from
+    """
+    
+    while True:
+        try:
+            if not tasks:
+                raise NoTasksError("No tasks to display!")
+        
+            view_task(tasks)
+            
+            delete_input = input('Input the task number to delete (or press Enter to Return to Main Menu): ').strip()
+            
+            if not delete_input:
+                print('Finished deleting tasks.')
+                break
+            
+            delete_input = int(delete_input)
+            
+            if delete_input < 1 or delete_input > len(tasks):
+                raise IndexError("Task doesn't exist!")
+            
+            removed_task = tasks.pop(delete_input - 1)
+            print(f"Task '{removed_task}' deleted!\n")
+            
+            continue
+        
+        except NoTasksError as e:
+            print(f'\nError: {e}')
+        
+        except IndexError as e:
+            print(f'\nError: {e}')
+
 def main():
     tasks = []
     quit_controller = QuitProgram()
@@ -126,10 +173,7 @@ def main():
             
         except NotValidInput as e:
             print(f'Error: {e}')
-            print('=' * 50)            
-            
-        
-        
+            print('=' * 50)                    
                     
 if __name__ == '__main__':
     main()
